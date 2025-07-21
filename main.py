@@ -158,7 +158,7 @@ def main():
     
     # Page configuration
     st.set_page_config(
-        page_title="Medical AI Authorization",
+        page_title="Medical Support Authorization AI",
         page_icon="images/cloudsolutions-logo.png",
         layout="wide",
         initial_sidebar_state="expanded"
@@ -217,7 +217,7 @@ Medical Procedure Authorization AI
     col1, col2 = st.columns([1, 1])
     
     with col1:
-        st.header(" Patient Case Input")
+        st.header(" Patient History")
         
         # Load example cases
         example_cases = {
@@ -323,20 +323,20 @@ Requested Procedure: Stress test"""
                     proc_confidence = proc.get('confidence', 0)
                     
                     # Color and style based on decision
-                    if proc_decision == "APPROVED":
+                    if proc_decision == "JUSTIFIED":
                         st.markdown(f"""
                         <div style='padding: 20px; border-radius: 10px; background-color: #d4edda; border: 3px solid #28a745; margin: 15px 0;'>
-                            <h2 style='color: #155724; margin: 0; font-size: 2em;'>APPROVED: {proc_name}</h2>
+                            <h2 style='color: #155724; margin: 0; font-size: 2em;'>JUSTIFIED: {proc_name}</h2>
                             <h4 style='color: #155724; margin: 10px 0;'>Confidence: {proc_confidence}%</h4>
                             <p style='color: #155724; margin: 10px 0; font-size: 1.1em;'>{proc.get('reasoning', 'No reasoning provided')}</p>
                             <p style='color: #155724; margin: 5px 0; font-weight: bold;'>Urgency: {proc.get('urgency', 'Not specified')}</p>
                         </div>
                         """, unsafe_allow_html=True)
                         
-                    elif proc_decision == "DENIED":
+                    elif proc_decision == "NOT JUSTIFIED":
                         st.markdown(f"""
                         <div style='padding: 20px; border-radius: 10px; background-color: #f8d7da; border: 3px solid #dc3545; margin: 15px 0;'>
-                            <h2 style='color: #721c24; margin: 0; font-size: 2em;'> DENIED: {proc_name}</h2>
+                            <h2 style='color: #721c24; margin: 0; font-size: 2em;'> NOT JUSTIFIED: {proc_name}</h2>
                             <h4 style='color: #721c24; margin: 10px 0;'>Confidence: {proc_confidence}%</h4>
                             <p style='color: #721c24; margin: 10px 0; font-size: 1.1em;'>{proc.get('reasoning', 'No reasoning provided')}</p>
                             <p style='color: #721c24; margin: 5px 0; font-weight: bold;'>Urgency: {proc.get('urgency', 'Not specified')}</p>
@@ -354,20 +354,20 @@ Requested Procedure: Stress test"""
                         """, unsafe_allow_html=True)
                 
                 # Summary stats for multiple procedures
-                approved_count = len([p for p in procedures if p.get('decision') == 'APPROVED'])
-                denied_count = len([p for p in procedures if p.get('decision') == 'DENIED'])
+                approved_count = len([p for p in procedures if p.get('decision') == 'JUSTIFIED'])
+                denied_count = len([p for p in procedures if p.get('decision') == 'NOT JUSTIFIED'])
                 pending_count = len([p for p in procedures if p.get('decision') == 'PENDING_ADDITIONAL_INFO'])
                 
                 col1, col2, col3, col4 = st.columns(4)
                 with col1:
                     st.metric("Total Procedures", len(procedures))
                 with col2:
-                    st.metric(" Approved", approved_count)
+                    st.metric(" JUSTIFIED", approved_count)
                 with col3:
-                    st.metric(" Denied", denied_count)
+                    st.metric(" NOT JUSTIFIED", denied_count)
                 with col4:
-                    st.metric(" Pending", pending_count)
-                
+                    st.metric(" PENDING", pending_count)
+
             # Single procedure display
             if not result.get('multiple_procedures'):
                 decision = result.get('decision', 'UNKNOWN')
@@ -375,20 +375,20 @@ Requested Procedure: Stress test"""
                 procedure_name = result.get('procedure_type', 'Unknown Procedure')
                 
                 # Large, obvious decision display with DARK TEXT
-                if decision == "APPROVED":
+                if decision == "JUSTIFIED":
                     st.markdown(f"""
                     <div style='padding: 25px; border-radius: 15px; background-color: #d4edda; border: 4px solid #28a745; text-align: center; margin: 20px 0; box-shadow: 0 4px 8px rgba(0,0,0,0.1);'>
-                        <h1 style='color: #155724; margin: 0; font-size: 3.5em; font-weight: bold;'> APPROVED</h1>
+                        <h1 style='color: #155724; margin: 0; font-size: 3.5em; font-weight: bold;'> JUSTIFIED</h1>
                         <h2 style='color: #155724; margin: 15px 0; font-size: 1.8em;'>{procedure_name}</h2>
                         <h3 style='color: #155724; margin: 10px 0; font-size: 1.4em;'>Confidence: {confidence}%</h3>
                         <p style='color: #155724; font-size: 1.3em; margin: 10px 0; font-weight: 600;'>✓ Procedure is medically justified and should proceed</p>
                     </div>
                     """, unsafe_allow_html=True)
                     
-                elif decision == "DENIED":
+                elif decision == "NOT JUSTIFIED":
                     st.markdown(f"""
                     <div style='padding: 25px; border-radius: 15px; background-color: #f8d7da; border: 4px solid #dc3545; text-align: center; margin: 20px 0; box-shadow: 0 4px 8px rgba(0,0,0,0.1);'>
-                        <h1 style='color: #721c24; margin: 0; font-size: 3.5em; font-weight: bold;'> DENIED</h1>
+                        <h1 style='color: #721c24; margin: 0; font-size: 3.5em; font-weight: bold;'> NOT JUSTIFIED</h1>
                         <h2 style='color: #721c24; margin: 15px 0; font-size: 1.8em;'>{procedure_name}</h2>
                         <h3 style='color: #721c24; margin: 10px 0; font-size: 1.4em;'>Confidence: {confidence}%</h3>
                         <p style='color: #721c24; font-size: 1.3em; margin: 10px 0; font-weight: 600;'>✗ Procedure is not medically necessary at this time</p>
