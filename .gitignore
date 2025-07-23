@@ -9,6 +9,7 @@ temp/
 .Trashes
 ehthumbs.db
 Thumbs.db
+.streamlit
 
 # Python
 __pycache__/
