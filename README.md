@@ -1,4 +1,4 @@
-# 🏥 Medical AI Authorization
+# 🏥 Medical Support Authorization AI
 
 AI-powered medical procedure authorization system that provides instant, evidence-based approval decisions.
 
