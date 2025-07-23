@@ -17,6 +17,7 @@ load_dotenv()
 # STREAMLIT CONFIG & STYLING
 # =====================================================
 favicon = Image.open("images/cloudsolutions-logo.png")
+GEMINI_API_KEY = st.secrets["GEMINI_API_KEY"]
 
 st.set_page_config(
     page_title="MSA-AI",
@@ -870,7 +871,7 @@ MULTIPLE PROCEDURES REQUESTED:
     
     # Input Section
     with col1:
-        st.markdown("### Patient Case Input")
+        st.markdown("### Patient Case History")
         
         # Load example if selected
         default_case = st.session_state.get('example_case', '')
