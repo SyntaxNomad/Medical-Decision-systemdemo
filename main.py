@@ -1,8 +1,8 @@
 # =====================================================
 # MEDICAL AI AUTHORIZATION SYSTEM - FIXED & ENHANCED
 # =====================================================
-from PIL import Image
 import google.generativeai as genai
+from PIL import Image
 import os
 import streamlit as st
 import json
@@ -16,10 +16,11 @@ load_dotenv()
 # =====================================================
 # STREAMLIT CONFIG & STYLING
 # =====================================================
+favicon = Image.open("images/cloudsolutions-logo.png")
 
 st.set_page_config(
     page_title="MSA-AI",
-    page_icon="🏥",
+    page_icon=favicon,
     layout="wide",
     initial_sidebar_state="expanded"
 )
