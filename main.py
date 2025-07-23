@@ -17,6 +17,7 @@ load_dotenv()
 # STREAMLIT CONFIG & STYLING
 # =====================================================
 favicon = Image.open("images/cloudsolutions-logo.png")
+
 GEMINI_API_KEY = st.secrets["GEMINI_API_KEY"]
 
 st.set_page_config(
@@ -803,7 +804,7 @@ def main():
         
         api_key = os.getenv("GEMINI_API_KEY")
         if api_key:
-            st.success(f"🔗 API Connected ({api_key[:10]}...)")
+            st.success(f"🔗 API Connected...")
         
         st.markdown("---")
         st.markdown("### Quick Examples")
