@@ -342,77 +342,106 @@ class MedicalAuthorizationAI:
             self.error_message = str(e)
     
     def analyze_case(self, patient_data, max_retries=3):
-        """Analyze a medical case with error handling"""
+
+        """Analyze a medical case with error handling and provide top 5 differential diagnoses with ICD-10 codes"""
         if not self.is_initialized:
             return {
                 "error": f"System not initialized: {self.error_message}",
                 "decision": "SYSTEM_ERROR",
                 "confidence": 0
             }
-        
+
         prompt = f"""
-        You are a specialized medical AI for insurance procedure authorization.
-        
-        PATIENT DATA:
-        {patient_data}
-        
-        If multiple procedures are requested, analyze each one separately.
-        
-        For SINGLE procedures, provide this JSON format:
-        {{
-            "decision": "APPROVED/DENIED/PENDING_ADDITIONAL_INFO",
-            "confidence": 85,
-            "procedure_type": "specific procedure name",
-            "clinical_indication": "primary medical reason for procedure",
-            "reasoning": "detailed medical justification with clinical evidence",
-            "risk_factors": ["patient risk factor 1", "patient risk factor 2"],
-            "guidelines_referenced": ["relevant clinical guideline 1"],
-            "alternatives": ["alternative if denied"],
-            "urgency": "ROUTINE/URGENT/EMERGENT",
-            "estimated_cost": "LOW/MODERATE/HIGH/VERY_HIGH",
-            "missing_info": ["what additional info is needed if pending"]
-        }}
-        
-        For MULTIPLE procedures, provide this JSON format:
-        {{
-            "multiple_procedures": true,
-            "overall_summary": "brief summary of all decisions",
-            "total_procedures": 5,
-            "approved_count": 3,
-            "denied_count": 1,
-            "pending_count": 1,
-            "procedures": [
-                {{
-                    "procedure_name": "CT Abdomen",
-                    "decision": "APPROVED",
-                    "confidence": 90,
-                    "reasoning": "Medical justification for this specific procedure",
-                    "urgency": "URGENT",
-                    "estimated_cost": "MODERATE",
-                    "missing_info": ["what else is needed if pending/denied"]
-                }}
-            ]
-        }}
-        
-        Base your decision on current medical guidelines and insurance best practices.
-        """
-        
+            You are a specialized medical AI for insurance procedure authorization.
+
+            PATIENT DATA:
+            {patient_data}
+
+            If multiple procedures are requested, analyze each one separately,
+            but DO NOT include 'differential_diagnosis' within each procedure object.
+
+            Instead, include a final section at the bottom of the output called 'differential_diagnosis',
+            which contains the top 3–5 possible diagnoses with their ICD-10 codes and confidence levels.
+
+            For SINGLE procedures, return this JSON format:
+            {{
+                "decision": "APPROVED/DENIED/PENDING_ADDITIONAL_INFO",
+                "confidence": 85,
+                "procedure_type": "specific procedure name",
+                "clinical_indication": "primary medical reason for procedure",
+                "reasoning": "detailed medical justification with clinical evidence",
+                "risk_factors": ["patient risk factor 1", "patient risk factor 2"],
+                "guidelines_referenced": ["relevant clinical guideline 1"],
+                "alternatives": ["alternative if denied"],
+                "urgency": "ROUTINE/URGENT/EMERGENT",
+                "estimated_cost": "LOW/MODERATE/HIGH/VERY_HIGH",
+                "missing_info": ["what additional info is needed if pending"],
+                "differential_diagnosis": [
+                    {{
+                        "diagnosis": "Condition name 1",
+                        "icd10": "ICD10-CODE-1",
+                        "confidence": 87
+                    }},
+                    {{
+                        "diagnosis": "Condition name 2",
+                        "icd10": "ICD10-CODE-2",
+                        "confidence": 74
+                    }}
+                ]
+            }}
+
+            For MULTIPLE procedures, use this format:
+            {{
+                "multiple_procedures": true,
+                "overall_summary": "brief summary of all decisions",
+                "total_procedures": 5,
+                "approved_count": 3,
+                "denied_count": 1,
+                "pending_count": 1,
+                "procedures": [
+                    {{
+                        "procedure_name": "CT Abdomen",
+                        "decision": "APPROVED",
+                        "confidence": 90,
+                        "reasoning": "Medical justification for this specific procedure",
+                        "urgency": "URGENT",
+                        "estimated_cost": "MODERATE",
+                        "missing_info": ["what else is needed if pending/denied"]
+                    }}
+                ],
+                "differential_diagnosis": [
+                    {{
+                        "diagnosis": "Condition 1",
+                        "icd10": "ICD10-CODE-1",
+                        "confidence": 85
+                    }},
+                    {{
+                        "diagnosis": "Condition 2",
+                        "icd10": "ICD10-CODE-2",
+                        "confidence": 80
+                    }}
+                ]
+            }}
+
+            Base your decision on current medical guidelines, diagnostic knowledge, and insurance best practices.
+            """
+
+
         for attempt in range(max_retries):
             try:
                 response = self.model.generate_content(prompt)
                 result = json.loads(response.text)
-                
-                # Validate required fields
+
                 if result.get('multiple_procedures'):
                     required_fields = ["multiple_procedures", "procedures"]
                 else:
-                    required_fields = ["decision", "confidence", "reasoning"]
-                    
+                    required_fields = ["decision", "confidence", "reasoning", "differential_diagnosis"]
+
                 if all(field in result for field in required_fields):
                     return result
                 else:
                     raise ValueError("Missing required fields in response")
-                    
+
             except json.JSONDecodeError:
                 if attempt == max_retries - 1:
                     return {
@@ -421,13 +450,13 @@ class MedicalAuthorizationAI:
                         "reasoning": "System error: Unable to process request. Please try again.",
                         "error": "JSON_DECODE_ERROR"
                     }
-                    
+
             except Exception as e:
                 if "429" in str(e):  # Rate limit
                     if attempt < max_retries - 1:
                         time.sleep(10)
                         continue
-                
+
                 if attempt == max_retries - 1:
                     return {
                         "decision": "PENDING_ADDITIONAL_INFO",
@@ -435,15 +464,16 @@ class MedicalAuthorizationAI:
                         "reasoning": f"System temporarily unavailable: {str(e)[:100]}",
                         "error": "API_ERROR"
                     }
-                
+
                 time.sleep(2 ** attempt)
-        
+
         return {
             "decision": "PENDING_ADDITIONAL_INFO",
             "confidence": 0,
             "reasoning": "Maximum retries exceeded. Please contact administrator.",
             "error": "MAX_RETRIES_EXCEEDED"
         }
+
     
     def justify_case(self, original_case, decision_info, justification_text):
         """Analyze additional justification for denied/pending cases"""
