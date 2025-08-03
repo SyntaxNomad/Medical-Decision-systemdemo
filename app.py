@@ -34,13 +34,13 @@ def configure_app():
 def initialize_ai():
     """Initialize AI system with proper error handling"""
     if 'medical_ai' not in st.session_state:
-        with st.spinner("🤖 Initializing AI system..."):
+        with st.spinner(" Initializing AI system..."):
             st.session_state.medical_ai = MedicalAuthorizationAI()
     
     # Check if initialization failed
     if not st.session_state.medical_ai.is_initialized:
         st.error(f"❌ **System Error:** {st.session_state.medical_ai.error_message}")
-        st.info("💡 Please ensure GEMINI_API_KEY is set in your environment variables or Streamlit secrets")
+        st.info(" Please ensure GEMINI_API_KEY is set in your environment variables or Streamlit secrets")
         st.stop()
 
 def handle_analysis(patient_data):
@@ -55,7 +55,7 @@ def handle_analysis(patient_data):
         return
     
     # Perform analysis
-    with st.spinner("🔍 AI analyzing case... This may take 10-15 seconds"):
+    with st.spinner(" AI analyzing case... This may take 10-15 seconds"):
         result = st.session_state.medical_ai.analyze_case(cleaned_data)
         
         # Store results

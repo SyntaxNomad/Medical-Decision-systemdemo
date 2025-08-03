@@ -32,12 +32,12 @@ def render_sidebar():
         if 'medical_ai' in st.session_state:
             status = st.session_state.medical_ai.get_status()
             if status['initialized']:
-                st.success("✅ AI System Ready")
+                st.success(" AI System Ready")
                 st.success(" API Connected")
             else:
-                st.error(f"❌ System Error: {status['error']}")
+                st.error(f" System Error: {status['error']}")
         else:
-            st.warning("⏳ Initializing...")
+            st.warning(" Initializing...")
         
         st.markdown("---")
         st.markdown("### Quick Examples")
@@ -374,7 +374,7 @@ def handle_justification_submission(procedure_data, original_case, justification
         
         # Clear the form and refresh
         st.session_state[f"show_justify_{justify_key}"] = False
-        time.sleep(1)
+        time.sleep(6)
         st.rerun()
 
 
