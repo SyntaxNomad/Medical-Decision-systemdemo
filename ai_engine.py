@@ -227,7 +227,7 @@ For multiple procedures:
             "reasoning": "Medical justification",
             "urgency": "URGENT",
             "estimated_cost": "MODERATE",
-            "missing_info": []
+            "missing_info": []d
         }}
     ],
     "differential_diagnosis": [

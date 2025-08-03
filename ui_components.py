@@ -42,7 +42,7 @@ def render_sidebar():
         st.markdown("---")
         st.markdown("### Quick Examples")
         
-        # Example case buttons - improved with better cases
+        # Example case buttons 
         for name, case in EXAMPLE_CASES.items():
             if st.button(name, use_container_width=True):
                 st.session_state.example_case = case
@@ -89,7 +89,7 @@ etc.""",
         feedback = get_validation_feedback(patient_data)
         if feedback:
             st.markdown('<div class="validation-feedback">', unsafe_allow_html=True)
-            st.write("💡 **Suggestions:**")
+            st.write(" **Suggestions:**")
             for item in feedback:
                 st.write(f"• {item}")
             st.markdown('</div>', unsafe_allow_html=True)
@@ -100,7 +100,7 @@ etc.""",
     can_analyze = len(patient_data.strip()) >= 10  # More lenient
     
     analyze_button = st.button(
-        "🔍 Analyze Case", 
+        " Analyze Case", 
         type="primary", 
         use_container_width=True,
         disabled=not can_analyze,
@@ -133,7 +133,7 @@ def render_results_section():
             st.markdown("#### Individual Procedure Decisions")
             
             if result.get('overall_summary'):
-                st.info(f"📋 **Overall Assessment:** {result['overall_summary']}")
+                st.info(f" **Overall Assessment:** {result['overall_summary']}")
             
             procedures = result.get('procedures', [])
             for i, proc in enumerate(procedures):
@@ -149,14 +149,14 @@ def render_results_section():
         
         # Analysis timestamp
         if 'analysis_time' in st.session_state:
-            st.caption(f"⏰ Analysis completed: {st.session_state.analysis_time}")
+            st.caption(f" Analysis completed: {st.session_state.analysis_time}")
         
         # Technical details (collapsible)
-        with st.expander("🔧 Technical Details"):
+        with st.expander(" Technical Details"):
             st.json(result)
     
     else:
-        st.info("👈 Enter a patient case and click 'Analyze Case' to see results here.")
+        st.info(" Enter a patient case and click 'Analyze Case' to see results here.")
         
         # Show sample output
         st.markdown("#### Sample Output Preview")
@@ -196,7 +196,7 @@ def create_summary_overview(result):
             st.markdown(f"""
             <div class="summary-card summary-approved">
                 <div class="metric-value">{approved}</div>
-                <div class="metric-label">✅ Approved</div>
+                <div class="metric-label"> Approved</div>
             </div>
             """, unsafe_allow_html=True)
             if st.button("Show Approved", key="btn_approved", use_container_width=True):
@@ -206,7 +206,7 @@ def create_summary_overview(result):
             st.markdown(f"""
             <div class="summary-card summary-denied">
                 <div class="metric-value">{denied}</div>
-                <div class="metric-label">❌ Denied</div>
+                <div class="metric-label"> Denied</div>
             </div>
             """, unsafe_allow_html=True)
             if st.button("Show Denied", key="btn_denied", use_container_width=True):
@@ -229,7 +229,7 @@ def create_summary_overview(result):
         if denied > 0 or pending > 0:
             st.warning(f"⚠️ **Action Required:** {denied + pending} procedure(s) need attention")
         else:
-            st.success(f"🎉 **All Clear:** All {approved} procedures approved!")
+            st.success(f" **All Clear:** All {approved} procedures approved!")
 
 def show_procedure_list(procedures):
     """Show filtered procedure list based on selection"""
@@ -242,10 +242,10 @@ def show_procedure_list(procedures):
             title = "All Procedures"
         elif show_type == 'approved':
             filtered = [p for p in procedures if p.get('decision') == 'APPROVED']
-            title = "✅ Approved Procedures"
+            title = " Approved Procedures"
         elif show_type == 'denied':
             filtered = [p for p in procedures if p.get('decision') == 'DENIED']
-            title = "❌ Denied Procedures"
+            title = " Denied Procedures"
         else:  # pending
             filtered = [p for p in procedures if p.get('decision') == 'PENDING_ADDITIONAL_INFO']
             title = "⏳ Pending Procedures"
@@ -269,9 +269,9 @@ def create_decision_card(procedure_data, index=None, original_case=""):
     
     # Determine card styling
     if decision == "APPROVED":
-        card_class, status_text, status_color = "approved", "✅ APPROVED", COLORS['approved']
+        card_class, status_text, status_color = "approved", " APPROVED", COLORS['approved']
     elif decision == "DENIED":
-        card_class, status_text, status_color = "denied", "❌ DENIED", COLORS['denied']
+        card_class, status_text, status_color = "denied", " DENIED", COLORS['denied']
     else:
         card_class, status_text, status_color = "pending", "⏳ PENDING", COLORS['pending']
     
@@ -300,7 +300,7 @@ def render_justification_section(procedure_data, procedure_name, original_case, 
     """Render justification request section"""
     justify_key = f"justify_{procedure_name}_{index}" if index is not None else f"justify_{procedure_name}"
     
-    if st.button(f"📝 Request Justification Review", key=f"btn_{justify_key}", 
+    if st.button(f" Request Justification Review", key=f"btn_{justify_key}", 
                 help="Provide additional clinical information to potentially change this decision"):
         st.session_state[f"show_justify_{justify_key}"] = True
     
@@ -312,7 +312,7 @@ def render_justification_section(procedure_data, procedure_name, original_case, 
             # Show what's missing
             missing_info = procedure_data.get('missing_info', [])
             if missing_info:
-                st.info(f"💡 **Consider addressing:** {', '.join(missing_info)}")
+                st.info(f" **Consider addressing:** {', '.join(missing_info)}")
             
             justification_text = st.text_area(
                 "Provide additional clinical justification:",
@@ -334,14 +334,14 @@ def render_justification_section(procedure_data, procedure_name, original_case, 
 
 def handle_justification_submission(procedure_data, original_case, justification_text, justify_key, index):
     """Handle justification submission and re-analysis"""
-    with st.spinner("🤔 Re-analyzing with additional justification..."):
+    with st.spinner(" Re-analyzing with additional justification..."):
         justify_result = st.session_state.medical_ai.justify_case(
             original_case, procedure_data, justification_text
         )
         
         # FIX: Handle None result
         if justify_result is None:
-            st.error("❌ **Error:** AI system returned no response. Please try again.")
+            st.error(" **Error:** AI system returned no response. Please try again.")
             return
             
         new_decision = justify_result.get('new_decision', procedure_data.get('decision'))
@@ -419,10 +419,10 @@ def render_justification_results():
         
         # Show success message with details
         if recent_result['decision_changed'] and recent_result['new_decision'] == 'APPROVED':
-            st.success(f"🎉 **Decision Changed to APPROVED!** ({recent_result['timestamp']})")
+            st.success(f" **Decision Changed to APPROVED!** ({recent_result['timestamp']})")
             
             if recent_result['approved_related_count'] > 0:
-                st.success(f"🌟 **Bonus: {recent_result['approved_related_count']} related procedures also approved!**")
+                st.success(f" **Bonus: {recent_result['approved_related_count']} related procedures also approved!**")
                 
                 # Show which procedures were approved
                 approved_list = recent_result.get('approved_procedures', [])
@@ -432,14 +432,14 @@ def render_justification_results():
                         st.markdown(f"• {proc['name']} ({proc['old_decision']} → ✅ APPROVED)")
                 
                 if recent_result['related_reasoning']:
-                    st.info(f"💡 **Reasoning:** {recent_result['related_reasoning']}")
+                    st.info(f" **Reasoning:** {recent_result['related_reasoning']}")
         
         # Show AI assessment
         if recent_result['assessment']:
-            st.markdown(f"**🤖 AI Assessment:** {recent_result['assessment']}")
+            st.markdown(f"** AI Assessment:** {recent_result['assessment']}")
         
         # Add dismiss button
-        if st.button("✅ Dismiss", key="dismiss_justification"):
+        if st.button(" Dismiss", key="dismiss_justification"):
             st.session_state.justification_results = []
             st.rerun()
         
@@ -469,7 +469,7 @@ def render_export_options(result):
                 'case_data': st.session_state.get('last_case', '')
             }
             st.session_state.saved_cases.append(case_summary)
-            st.success("✅ Results saved to case history!")
+            st.success(" Results saved to case history!")
     
     with col3:
         if st.button("📋 Copy Summary", use_container_width=True):
@@ -508,9 +508,9 @@ def render_footer_metrics():
     
     metrics = [
         ("~15 sec", "Response Time"),
-        ("94%", "Accuracy Rate"), 
-        ("85%", "Cost Savings"),
-        ("100x", "Processing Speed")
+        ("HIGH", "Accuracy Rate"), 
+        ("HUGE", "Cost Savings"),
+        ("SCALABLE", "AI-Powered Decisions")
     ]
     
     for col, (value, label) in zip([col1, col2, col3, col4], metrics):
@@ -525,6 +525,6 @@ def render_footer_metrics():
     st.markdown("""
     <div style='text-align: center; color: #6b7280; margin-top: 2rem; padding: 1rem; background: #f9fafb; border-radius: 8px;'>
         <strong>Medical Support Authorization AI</strong> | Assisting healthcare authorization workflows<br>
-        <em>Enhanced Version - Built for real-world medical scenarios</em>
+        <em> Demo Version - Built for real-world medical scenarios</em>
     </div>
     """, unsafe_allow_html=True)
