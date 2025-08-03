@@ -333,80 +333,47 @@ def render_justification_section(procedure_data, procedure_name, original_case, 
                 handle_justification_submission(procedure_data, original_case, justification_text, justify_key, index)
 
 def handle_justification_submission(procedure_data, original_case, justification_text, justify_key, index):
-    """Handle justification submission and re-analysis"""
-    with st.spinner(" Re-analyzing with additional justification..."):
+    """Handle justification submission - individual procedures only"""
+    with st.spinner("🤔 Re-analyzing with additional justification..."):
         justify_result = st.session_state.medical_ai.justify_case(
             original_case, procedure_data, justification_text
         )
         
-        # FIX: Handle None result
         if justify_result is None:
-            st.error(" **Error:** AI system returned no response. Please try again.")
+            st.error("❌ **Error:** AI system returned no response. Please try again.")
             return
             
         new_decision = justify_result.get('new_decision', procedure_data.get('decision'))
         decision_changed = justify_result.get('decision_changed', False)
-        approve_related = justify_result.get('approve_related_procedures', False)
         
-        # STORE JUSTIFICATION RESULTS IN SESSION STATE
-        justification_summary = {
-            'timestamp': datetime.now().strftime('%H:%M:%S'),
-            'procedure_name': procedure_data.get('procedure_name', 'Unknown'),
-            'old_decision': procedure_data.get('decision'),
-            'new_decision': new_decision,
-            'decision_changed': decision_changed,
-            'assessment': justify_result.get('justification_assessment', ''),
-            'reasoning': justify_result.get('reasoning', ''),
-            'approved_related_count': 0,
-            'related_reasoning': justify_result.get('related_procedures_reasoning', '')
-        }
-        
-        # Show results for the current procedure
+        # Update ONLY this specific procedure
         if decision_changed and new_decision == "APPROVED":
-            # Update the current procedure
             procedure_data['decision'] = new_decision
             procedure_data['reasoning'] = justify_result.get('reasoning', procedure_data['reasoning'])
             procedure_data['confidence'] = justify_result.get('confidence', procedure_data['confidence'])
             
-            # Check if we should approve related procedures
-            if approve_related and 'last_result' in st.session_state:
-                result = st.session_state.last_result
-                if result.get('multiple_procedures'):
-                    procedures = result.get('procedures', [])
-                    
-                    # Auto-approve other denied/pending procedures
-                    approved_count = 0
-                    approved_procedures = []
-                    
-                    for i, proc in enumerate(procedures):
-                        if i != index and proc.get('decision') != 'APPROVED':
-                            old_decision = proc.get('decision')
-                            proc['decision'] = 'APPROVED'
-                            proc['reasoning'] = f"Approved based on strong justification: {justify_result.get('related_procedures_reasoning', 'Strong clinical evidence provided')}"
-                            proc['confidence'] = 90
-                            approved_count += 1
-                            approved_procedures.append({
-                                'name': proc.get('procedure_name'),
-                                'old_decision': old_decision
-                            })
-                    
-                    # Update justification summary
-                    justification_summary['approved_related_count'] = approved_count
-                    justification_summary['approved_procedures'] = approved_procedures
-                    
-                    # Update the main session state
-                    st.session_state.last_result['procedures'] = procedures
+            st.success("🎉 **Decision Changed to APPROVED!**")
+            
+        elif decision_changed:
+            if new_decision == "DENIED":
+                st.error("❌ **Still DENIED** - Additional justification not sufficient")
+            else:
+                st.warning("⏳ **Still PENDING** - More information needed")
+        else:
+            st.info("🔄 **Decision Unchanged** - Original decision stands")
         
-        # STORE THE JUSTIFICATION RESULT
-        if 'justification_results' not in st.session_state:
-            st.session_state.justification_results = []
+        # Show AI assessment
+        assessment = justify_result.get('justification_assessment', '')
+        if assessment:
+            st.markdown(f"**🤖 AI Assessment:** {assessment}")
         
-        st.session_state.justification_results.append(justification_summary)
+        # Show what's still needed
+        still_needed = justify_result.get('still_needed', [])
+        if still_needed and new_decision != "APPROVED":
+            st.info(f"📋 **Still needed:** {', '.join(still_needed)}")
         
-        # Clear the form
+        # Clear the form and refresh
         st.session_state[f"show_justify_{justify_key}"] = False
-        
-        # Force UI refresh - but now we have the results stored!
         time.sleep(1)
         st.rerun()
 
@@ -508,12 +475,12 @@ def render_footer_metrics():
     
     metrics = [
         ("~15 sec", "Response Time"),
-        ("HIGH", "Accuracy Rate"), 
-        ("HUGE", "Cost Savings"),
-        ("SCALABLE", "AI-Powered Decisions")
+        ("Transparent", "Clear, Structured Justification"), 
+        ("Faster Approvals", "Saves Time & Effort"),
+        ("Scalable", "AI Support for Doctors")
     ]
     
-    for col, (value, label) in zip([col1, col2, col3, col4], metrics):
+    for col, (value, label) in zip([col1, col2, col3, col4] , metrics):
         with col:
             st.markdown(f"""
             <div class="metric-card">
