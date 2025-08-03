@@ -100,76 +100,38 @@ class MedicalAuthorizationAI:
         return self._error_response("Maximum retries exceeded - please try again later")
     
     def justify_case(self, original_case, decision_info, justification_text):
-        """Enhanced justification that can approve related procedures"""
+        """Simple justification for individual procedures only"""
         
         if not self.is_initialized:
             return self._error_response("AI system not initialized")
         
-        # Check if this is part of a multiple procedure case
-        try:
-            import streamlit as st
-            is_multiple = 'multiple_procedures' in st.session_state.get('last_result', {})
-        except:
-            is_multiple = False
-        
-        if is_multiple:
-            prompt = f"""
-            You are reviewing a medical procedure authorization from a case with MULTIPLE procedures.
-            
-            ORIGINAL CASE: {original_case}
-            SPECIFIC PROCEDURE BEING JUSTIFIED: {decision_info.get('procedure_name', 'Unknown')}
-            ORIGINAL DECISION: {decision_info.get('decision')}
-            PROVIDER JUSTIFICATION: {justification_text}
-            
-            IMPORTANT: If this justification is strong enough to approve this procedure, 
-            consider if it also supports approving other related procedures in the same case.
-            Strong justifications include: emergency situations, specialist recommendations, 
-            contraindications to alternatives, progressive symptoms, or new critical findings.
-            
-            Return JSON:
-            {{
-                "new_decision": "APPROVED/DENIED/PENDING_ADDITIONAL_INFO",
-                "confidence": 85,
-                "justification_assessment": "Assessment of justification",
-                "reasoning": "Updated reasoning",
-                "decision_changed": true,
-                "approve_related_procedures": true,
-                "related_procedures_reasoning": "Why other procedures should also be approved"
-            }}
-            """
-        else:
-            prompt = f"""
-            Review this medical authorization that was {decision_info.get('decision', 'DENIED')}.
+        # Simple prompt - no related procedure logic
+        prompt = f"""
+        Review this medical authorization that was {decision_info.get('decision', 'DENIED')}.
 
-            ORIGINAL CASE: {original_case}
-            ORIGINAL DECISION: {decision_info.get('decision')}
-            ORIGINAL REASONING: {decision_info.get('reasoning', 'None provided')}
+        ORIGINAL CASE: {original_case}
+        ORIGINAL DECISION: {decision_info.get('decision')}
+        ORIGINAL REASONING: {decision_info.get('reasoning', 'None provided')}
 
-            NEW JUSTIFICATION FROM PROVIDER: {justification_text}
+        NEW JUSTIFICATION FROM PROVIDER: {justification_text}
 
-            Based on this additional information, provide JSON response:
-            {{
-                "new_decision": "APPROVED/DENIED/PENDING_ADDITIONAL_INFO",
-                "confidence": 85,
-                "justification_assessment": "Assessment of the new justification",
-                "reasoning": "Updated reasoning based on new information",
-                "still_needed": ["what else needed if still pending/denied"],
-                "decision_changed": true,
-                "approve_related_procedures": false,
-                "related_procedures_reasoning": ""
-            }}
-            """
+        Based on this additional information, provide JSON response:
+        {{
+            "new_decision": "APPROVED/DENIED/PENDING_ADDITIONAL_INFO",
+            "confidence": 85,
+            "justification_assessment": "Assessment of the new justification",
+            "reasoning": "Updated reasoning based on new information",
+            "still_needed": ["what else needed if still pending/denied"],
+            "decision_changed": true
+        }}
+
+        Consider if the additional justification provides sufficient medical evidence to change THIS SPECIFIC PROCEDURE'S decision.
+        Be reasonable - if good additional evidence is provided, consider approval.
+        """
         
         try:
             response = self.model.generate_content(prompt)
             result = json.loads(response.text)
-            
-            # Ensure required fields exist
-            if 'approve_related_procedures' not in result:
-                result['approve_related_procedures'] = False
-            if 'related_procedures_reasoning' not in result:
-                result['related_procedures_reasoning'] = ""
-                
             return result
             
         except Exception as e:
@@ -178,11 +140,9 @@ class MedicalAuthorizationAI:
                 "confidence": 0,
                 "justification_assessment": f"Error processing justification: {str(e)[:50]}",
                 "reasoning": "Unable to process additional information",
-                "decision_changed": False,
-                "approve_related_procedures": False,
-                "related_procedures_reasoning": ""
+                "decision_changed": False
             }
-    
+        
     def _create_analysis_prompt(self, patient_data):
         """Create the main analysis prompt"""
         return f"""

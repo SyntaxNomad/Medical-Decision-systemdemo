@@ -33,7 +33,7 @@ def render_sidebar():
             status = st.session_state.medical_ai.get_status()
             if status['initialized']:
                 st.success("✅ AI System Ready")
-                st.success("🔗 API Connected")
+                st.success(" API Connected")
             else:
                 st.error(f"❌ System Error: {status['error']}")
         else:
@@ -334,7 +334,7 @@ def render_justification_section(procedure_data, procedure_name, original_case, 
 
 def handle_justification_submission(procedure_data, original_case, justification_text, justify_key, index):
     """Handle justification submission - individual procedures only"""
-    with st.spinner("🤔 Re-analyzing with additional justification..."):
+    with st.spinner(" Re-analyzing with additional justification..."):
         justify_result = st.session_state.medical_ai.justify_case(
             original_case, procedure_data, justification_text
         )
@@ -352,7 +352,7 @@ def handle_justification_submission(procedure_data, original_case, justification
             procedure_data['reasoning'] = justify_result.get('reasoning', procedure_data['reasoning'])
             procedure_data['confidence'] = justify_result.get('confidence', procedure_data['confidence'])
             
-            st.success("🎉 **Decision Changed to APPROVED!**")
+            st.success(" **Decision Changed to APPROVED!**")
             
         elif decision_changed:
             if new_decision == "DENIED":
@@ -365,12 +365,12 @@ def handle_justification_submission(procedure_data, original_case, justification
         # Show AI assessment
         assessment = justify_result.get('justification_assessment', '')
         if assessment:
-            st.markdown(f"**🤖 AI Assessment:** {assessment}")
+            st.markdown(f"** AI Assessment:** {assessment}")
         
         # Show what's still needed
         still_needed = justify_result.get('still_needed', [])
         if still_needed and new_decision != "APPROVED":
-            st.info(f"📋 **Still needed:** {', '.join(still_needed)}")
+            st.info(f" **Still needed:** {', '.join(still_needed)}")
         
         # Clear the form and refresh
         st.session_state[f"show_justify_{justify_key}"] = False
