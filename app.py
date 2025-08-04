@@ -1,5 +1,4 @@
 # app.py - Clean, simple main application file
-
 import streamlit as st
 from datetime import datetime
 
@@ -10,7 +9,8 @@ from ui_components import (
     render_sidebar, 
     render_input_section, 
     render_results_section,
-    render_footer_metrics
+    render_footer_metrics,
+    render_diagnosis_display  # Add this import
 )
 from utils import load_css, validate_input_flexible, clean_input, sanitize_medical_input
 from config import APP_TITLE
@@ -34,13 +34,13 @@ def configure_app():
 def initialize_ai():
     """Initialize AI system with proper error handling"""
     if 'medical_ai' not in st.session_state:
-        with st.spinner(" Initializing AI system..."):
+        with st.spinner("🔄 Initializing AI system..."):
             st.session_state.medical_ai = MedicalAuthorizationAI()
     
     # Check if initialization failed
     if not st.session_state.medical_ai.is_initialized:
         st.error(f"❌ **System Error:** {st.session_state.medical_ai.error_message}")
-        st.info(" Please ensure GEMINI_API_KEY is set in your environment variables or Streamlit secrets")
+        st.info("ℹ️ Please ensure GEMINI_API_KEY is set in your environment variables or Streamlit secrets")
         st.stop()
 
 def handle_analysis(patient_data):
@@ -55,7 +55,7 @@ def handle_analysis(patient_data):
         return
     
     # Perform analysis
-    with st.spinner(" AI analyzing case... This may take 10-15 seconds"):
+    with st.spinner("🔬 AI analyzing case... This may take 10-15 seconds"):
         result = st.session_state.medical_ai.analyze_case(cleaned_data)
         
         # Store results
@@ -69,8 +69,8 @@ def handle_analysis(patient_data):
             del st.session_state[key]
         
         # Clear example case after analysis
-        if 'example_case' in st.session_state:
-            del st.session_state.example_case
+        # if 'example_case' in st.session_state:
+        #     del st.session_state.example_case
         
         # Show success message
         if result.get('error'):
@@ -96,7 +96,7 @@ def main():
     # Create main layout
     col1, col2 = st.columns([1, 1], gap="large")
     
-    # Left column: Input and sidebar
+    # Left column: Input, sidebar, and diagnoses
     with col1:
         render_sidebar()
         
@@ -106,8 +106,12 @@ def main():
         # Handle analysis button click
         if analyze_button and patient_data.strip():
             handle_analysis(patient_data)
+        
+        # ADD DIAGNOSES HERE - under the input section
+        if 'last_result' in st.session_state:
+            render_diagnosis_display(st.session_state.last_result)
     
-    # Right column: Results
+    # Right column: Authorization Results (without diagnoses now)
     with col2:
         render_results_section()
     

@@ -62,35 +62,56 @@ def render_input_section():
     """Render the patient input section with improved validation"""
     st.markdown("### Patient Case History")
     
-    # Load example if selected
-    default_case = st.session_state.get('example_case', '')
+    # Initialize persistent template in session state
+    if 'patient_input_data' not in st.session_state:
+        st.session_state.patient_input_data = """Age: 
+
+Complaint: 
+
+History: 
+
+Procedures Requested:
+
+"""
+    
+    # Load example if selected, otherwise use persistent data
+    if st.session_state.get('example_case'):
+        display_value = st.session_state.example_case
+    else:
+        display_value = st.session_state.patient_input_data
     
     patient_data = st.text_area(
         "Enter patient case details:",
-        value=default_case,
+        value=display_value,
         height=350,
-        placeholder="""Example - now more flexible:
-Age: 60s (or "elderly", "middle-aged") 
+        placeholder="""Age: 65 (or "60s", "elderly", "middle-aged")
+
+Procedures Requested:
+- Heart monitor
+- Blood tests
+- MRI scan
+
+Additional Case Details:
 Complaint: Heart problems for 2 weeks  
 History: High blood pressure, diabetes
-Family: Father had heart attack
+Family History: Father had heart attack
 Symptoms: Chest pain, shortness of breath
-Procedure: Heart monitor (or "cardiac test")
-
-For multiple procedures:
-PROCEDURES REQUESTED:
-1. Heart scan
-2. Blood tests
-etc.""",
-        help="Age and procedure can be approximate - the AI will understand!"
+Physical Exam: Blood pressure 150/90
+Previous Tests: EKG showed irregularities""",
+        help="Fill in the pre-written fields above. Age and procedures can be approximate - the AI will understand!",
+        key="patient_input_persistent"
     )
+    
+    # Update session state with current input (only if not using example)
+    if not st.session_state.get('example_case'):
+        st.session_state.patient_input_data = patient_data
     
     # Show validation feedback in real-time
     if patient_data:
         feedback = get_validation_feedback(patient_data)
         if feedback:
             st.markdown('<div class="validation-feedback">', unsafe_allow_html=True)
-            st.write(" **Suggestions:**")
+            st.write("💡 **Suggestions:**")
             for item in feedback:
                 st.write(f"• {item}")
             st.markdown('</div>', unsafe_allow_html=True)
@@ -101,7 +122,7 @@ etc.""",
     can_analyze = len(patient_data.strip()) >= 10  # More lenient
     
     analyze_button = st.button(
-        " Analyze Case", 
+        "🔬 Analyze Case", 
         type="primary", 
         use_container_width=True,
         disabled=not can_analyze,
@@ -110,7 +131,7 @@ etc.""",
     
     # Clear example button
     if st.session_state.get('example_case'):
-        if st.button("Clear Example", use_container_width=True):
+        if st.button("🗑️ Clear Example", use_container_width=True):
             del st.session_state.example_case
             st.rerun()
     
@@ -134,7 +155,7 @@ def render_results_section():
             st.markdown("#### Individual Procedure Decisions")
             
             if result.get('overall_summary'):
-                st.info(f" **Overall Assessment:** {result['overall_summary']}")
+                st.info(f"📋 **Overall Assessment:** {result['overall_summary']}")
             
             procedures = result.get('procedures', [])
             for i, proc in enumerate(procedures):
@@ -145,19 +166,18 @@ def render_results_section():
         # Add save/export functionality  
         render_export_options(result)
         
-        # Show diagnosis details
-        render_diagnosis_display(result)
+        # REMOVED: render_diagnosis_display(result) - this line is deleted
         
         # Analysis timestamp
         if 'analysis_time' in st.session_state:
-            st.caption(f" Analysis completed: {st.session_state.analysis_time}")
+            st.caption(f"⏱️ Analysis completed: {st.session_state.analysis_time}")
         
         # Technical details (collapsible)
-        with st.expander(" Technical Details"):
+        with st.expander("🔧 Technical Details"):
             st.json(result)
     
     else:
-        st.info(" Enter a patient case and click 'Analyze Case' to see results here.")
+        st.info("⏳ Enter a patient case and click 'Analyze Case' to see results here.")
         
         # Show sample output
         st.markdown("#### Sample Output Preview")

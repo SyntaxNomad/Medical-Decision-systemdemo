@@ -144,61 +144,81 @@ class MedicalAuthorizationAI:
             }
         
     def _create_analysis_prompt(self, patient_data):
-        """Create the main analysis prompt"""
+        """Create the main analysis prompt with stricter authorization criteria"""
         return f"""
-You are a medical AI for insurance procedure authorization. Analyze this case and provide a JSON response.
-Only evaluate and make decisions for procedures explicitly listed under the 'PROCEDURES' (or anything with bad spelling with the same meaning) section. Ignore any procedures mentioned elsewhere in the case.
-PATIENT DATA:
-{patient_data}
+    You are a medical AI for insurance procedure authorization. You must be CONSERVATIVE and follow strict medical necessity criteria.
 
-RESPONSE FORMAT:
-For single procedures:
-{{
-    "decision": "APPROVED/DENIED/PENDING_ADDITIONAL_INFO",
-    "confidence": 85,
-    "procedure_type": "specific procedure name",
-    "clinical_indication": "primary medical reason",
-    "reasoning": "detailed medical justification with evidence",
-    "risk_factors": ["risk1", "risk2"],
-    "guidelines_referenced": ["guideline1"],
-    "alternatives": ["alternative if denied"],
-    "urgency": "ROUTINE/URGENT/EMERGENT",
-    "estimated_cost": "LOW/MODERATE/HIGH/VERY_HIGH", 
-    "missing_info": ["what's needed if pending"],
-    "differential_diagnosis": [
-        {{"diagnosis": "Condition 1", "icd10": "ICD10-CODE", "confidence": 85}},
-        {{"diagnosis": "Condition 2", "icd10": "ICD10-CODE", "confidence": 70}}
-    ]
-}}
+    AUTHORIZATION CRITERIA:
+    - APPROVE only when clear medical necessity is documented
+    - DENY when insufficient justification or inappropriate for clinical presentation  
+    - PENDING when missing critical clinical information needed for decision
 
-For multiple procedures:
-{{
-    "multiple_procedures": true,
-    "overall_summary": "brief summary",
-    "total_procedures": 3,
-    "approved_count": 2,
-    "denied_count": 1,
-    "pending_count": 0,
-    "procedures": [
-        {{
-            "procedure_name": "CT Abdomen",
-            "decision": "APPROVED",
-            "confidence": 90,
-            "reasoning": "Medical justification",
-            "urgency": "URGENT",
-            "estimated_cost": "MODERATE",
-            "missing_info": []d
-        }}
-    ],
-    "differential_diagnosis": [
-        {{"diagnosis": "Condition", "icd10": "CODE", "confidence": 85}}
-    ]
-}}
+    REQUIRED INFORMATION FOR APPROVAL:
+    - Clear medical complaint/symptoms with duration and severity
+    - Relevant medical history and risk factors
+    - Clinical indication that justifies the specific procedure
+    - Evidence that less expensive alternatives were considered/tried when appropriate
 
-Base decisions on medical necessity, clinical guidelines, and insurance best practices.
-Be thorough but practical in your analysis.
-"""
-    
+    PATIENT DATA:
+    {patient_data}
+
+    STRICT EVALUATION RULES:
+    1. If no clear medical complaint/symptoms described → PENDING or DENIED
+    2. If duration/severity not specified for symptoms → PENDING  
+    3. If expensive imaging requested without proper clinical indication → DENIED
+    4. If procedure doesn't match clinical presentation → DENIED
+    5. If missing critical history for risk assessment → PENDING
+    6. Default to PENDING when information is unclear or incomplete
+
+    RESPONSE FORMAT:
+    For single procedures:
+    {{
+        "decision": "APPROVED/DENIED/PENDING_ADDITIONAL_INFO",
+        "confidence": 85,
+        "procedure_type": "specific procedure name",
+        "clinical_indication": "primary medical reason",
+        "reasoning": "detailed medical justification with evidence-based criteria",
+        "risk_factors": ["documented risk factors only"],
+        "guidelines_referenced": ["relevant medical guidelines"],
+        "alternatives": ["alternative treatments if denied"],
+        "urgency": "ROUTINE/URGENT/EMERGENT",
+        "estimated_cost": "LOW/MODERATE/HIGH/VERY_HIGH", 
+        "missing_info": ["specific information needed if pending"],
+        "differential_diagnosis": [
+            {{"diagnosis": "Condition 1", "icd10": "ICD10-CODE", "confidence": 85}},
+            {{"diagnosis": "Condition 2", "icd10": "ICD10-CODE", "confidence": 70}}
+        ]
+    }}
+
+    For multiple procedures:
+    {{
+        "multiple_procedures": true,
+        "overall_summary": "brief summary of authorization decisions",
+        "total_procedures": 3,
+        "approved_count": 2,
+        "denied_count": 1,
+        "pending_count": 0,
+        "procedures": [
+            {{
+                "procedure_name": "CT Abdomen",
+                "decision": "APPROVED/DENIED/PENDING_ADDITIONAL_INFO",
+                "confidence": 90,
+                "reasoning": "Specific medical justification with guidelines reference",
+                "urgency": "ROUTINE/URGENT/EMERGENT",
+                "estimated_cost": "LOW/MODERATE/HIGH/VERY_HIGH",
+                "missing_info": ["specific info needed if pending"]
+            }}
+        ],
+        "differential_diagnosis": [
+            {{"diagnosis": "Condition", "icd10": "CODE", "confidence": 85}}
+        ]
+    }}
+
+    REMEMBER: You represent insurance authorization - be conservative, require complete clinical justification, and protect against unnecessary procedures. When in doubt, request more information (PENDING) rather than automatically approving.
+
+    Only evaluate procedures explicitly listed under 'Procedures Requested:' section.
+    """
+        
     def _create_justification_prompt(self, original_case, decision_info, justification_text):
         """Create prompt for justification re-analysis"""
         return f"""
