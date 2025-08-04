@@ -34,7 +34,7 @@ class MedicalAuthorizationAI:
                 GEMINI_MODEL,
                 generation_config={
                     "response_mime_type": "application/json",
-                    "temperature": 0.1,  # Low temperature for consistent medical decisions
+                    "temperature": 0,  # Zero temperature for consistent medical decisions
                     "max_output_tokens": 4000
                 }
             )
@@ -147,7 +147,7 @@ class MedicalAuthorizationAI:
         """Create the main analysis prompt"""
         return f"""
 You are a medical AI for insurance procedure authorization. Analyze this case and provide a JSON response.
-
+Only evaluate and make decisions for procedures explicitly listed under the 'PROCEDURES' (or anything with bad spelling with the same meaning) section. Ignore any procedures mentioned elsewhere in the case.
 PATIENT DATA:
 {patient_data}
 

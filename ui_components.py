@@ -5,6 +5,7 @@ import time
 from datetime import datetime
 from config import APP_TITLE, APP_SUBTITLE, EXAMPLE_CASES, COLORS
 from utils import get_validation_feedback
+import json
 
 def render_header():
     """Render the main header with logo"""
@@ -422,51 +423,277 @@ def render_export_options(result):
     
     with col1:
         if st.button("📄 Export PDF", use_container_width=True):
-            st.info("📧 PDF export feature - coming soon!")
+            # Create a simple text summary that can be downloaded
+            pdf_content = generate_text_summary(result)
+            st.download_button(
+                label="📥 Download Text Summary",
+                data=pdf_content,
+                file_name=f"diagnosis_report_{datetime.now().strftime('%Y%m%d_%H%M')}.txt",
+                mime="text/plain",
+                use_container_width=True
+            )
     
     with col2:
-        if st.button("💾 Save Results", use_container_width=True):
-            # Save to session state history
-            if 'saved_cases' not in st.session_state:
-                st.session_state.saved_cases = []
-            
-            case_summary = {
-                'timestamp': datetime.now().strftime('%Y-%m-%d %H:%M'),
-                'result': result,
-                'case_data': st.session_state.get('last_case', '')
-            }
-            st.session_state.saved_cases.append(case_summary)
-            st.success(" Results saved to case history!")
+        if st.button("📊 Export JSON", use_container_width=True):
+            json_data = json.dumps(result, indent=2)
+            st.download_button(
+                label="📥 Download JSON Data",
+                data=json_data,
+                file_name=f"authorization_data_{datetime.now().strftime('%Y%m%d_%H%M')}.json",
+                mime="application/json"
+            )
     
     with col3:
         if st.button("📋 Copy Summary", use_container_width=True):
-            st.info("📋 Copy to clipboard - feature coming soon!")
+            # Generate summary text for copying
+            summary_text = generate_text_summary(result)
+            
+            # Display the summary in a text area that users can copy from
+            st.text_area(
+                "📋 Copy this summary:",
+                value=summary_text,
+                height=200,
+                help="Select all text (Ctrl+A) and copy (Ctrl+C)"
+            )
+
+def generate_text_summary(result):
+    """Generate a text summary of ALL authorization results"""
+    summary = []
+    summary.append("🏥 MEDICAL AUTHORIZATION REPORT")
+    summary.append("=" * 50)
+    summary.append(f"Generated: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}")
+    summary.append("")
+    
+    # Add authorization decisions (main content)
+    if result.get('multiple_procedures'):
+        # Multiple procedures
+        procedures = result.get('procedures', [])
+        summary.append("AUTHORIZATION DECISIONS:")
+        summary.append("-" * 30)
+        
+        approved_count = 0
+        denied_count = 0
+        pending_count = 0
+        
+        for i, proc in enumerate(procedures, 1):
+            decision = proc.get('decision', 'UNKNOWN')
+            procedure_name = proc.get('procedure_name', proc.get('procedure_type', 'Unknown Procedure'))
+            reasoning = proc.get('reasoning', 'No reasoning provided')
+            confidence = proc.get('confidence', 0)
+            
+            # Count decisions
+            if decision == 'APPROVED':
+                approved_count += 1
+                status_icon = "✅"
+            elif decision == 'DENIED':
+                denied_count += 1
+                status_icon = "❌"
+            else:
+                pending_count += 1
+                status_icon = "⏳"
+            
+            summary.append(f"{i}. {status_icon} {decision}: {procedure_name}")
+            summary.append(f"   Confidence: {confidence}%")
+            summary.append(f"   Reasoning: {reasoning}")
+            summary.append("")
+        
+        # Add summary stats
+        summary.append("SUMMARY STATISTICS:")
+        summary.append("-" * 20)
+        summary.append(f"Total Procedures: {len(procedures)}")
+        summary.append(f"✅ Approved: {approved_count}")
+        summary.append(f"❌ Denied: {denied_count}")
+        summary.append(f"⏳ Pending: {pending_count}")
+        summary.append("")
+        
+        # Overall assessment
+        if result.get('overall_summary'):
+            summary.append("OVERALL ASSESSMENT:")
+            summary.append("-" * 20)
+            summary.append(result['overall_summary'])
+            summary.append("")
+    
+    else:
+        # Single procedure
+        decision = result.get('decision', 'UNKNOWN')
+        procedure_name = result.get('procedure_name', result.get('procedure_type', 'Unknown Procedure'))
+        reasoning = result.get('reasoning', 'No reasoning provided')
+        confidence = result.get('confidence', 0)
+        
+        if decision == 'APPROVED':
+            status_icon = "✅"
+        elif decision == 'DENIED':
+            status_icon = "❌"
+        else:
+            status_icon = "⏳"
+        
+        summary.append("AUTHORIZATION DECISION:")
+        summary.append("-" * 25)
+        summary.append(f"{status_icon} {decision}: {procedure_name}")
+        summary.append(f"Confidence: {confidence}%")
+        summary.append(f"Reasoning: {reasoning}")
+        summary.append("")
+    
+    # Add differential diagnoses if available
+    diagnoses = result.get('differential_diagnosis', [])
+    if diagnoses:
+        summary.append("DIFFERENTIAL DIAGNOSES:")
+        summary.append("-" * 25)
+        for i, diag in enumerate(diagnoses, 1):
+            if diag and diag.get('diagnosis'):
+                name = diag.get('diagnosis', 'Unknown condition')
+                icd10 = diag.get('icd10', 'No code')
+                confidence = diag.get('confidence', 0)
+                summary.append(f"{i}. {name}")
+                summary.append(f"   ICD-10: {icd10}")
+                summary.append(f"   Likelihood: {confidence}%")
+                summary.append("")
+    
+    # Add other sections if they exist
+    if result.get('recommendations'):
+        summary.append("RECOMMENDATIONS:")
+        summary.append("-" * 15)
+        summary.append(result.get('recommendations', ''))
+        summary.append("")
+    
+    if result.get('next_steps'):
+        summary.append("NEXT STEPS:")
+        summary.append("-" * 11)
+        summary.append(result.get('next_steps', ''))
+        summary.append("")
+    
+    # Add missing info for denied/pending cases
+    missing_info = []
+    if result.get('multiple_procedures'):
+        for proc in result.get('procedures', []):
+            if proc.get('decision') in ['DENIED', 'PENDING_ADDITIONAL_INFO'] and proc.get('missing_info'):
+                missing_info.extend(proc.get('missing_info', []))
+    elif result.get('decision') in ['DENIED', 'PENDING_ADDITIONAL_INFO'] and result.get('missing_info'):
+        missing_info = result.get('missing_info', [])
+    
+    if missing_info:
+        summary.append("ADDITIONAL INFO NEEDED:")
+        summary.append("-" * 25)
+        for info in set(missing_info):  # Remove duplicates
+            summary.append(f"• {info}")
+        summary.append("")
+    
+    # Add disclaimer
+    summary.append("IMPORTANT DISCLAIMER:")
+    summary.append("-" * 20)
+    summary.append("This AI-generated authorization report is for informational")
+    summary.append("purposes only. Final authorization decisions should always")
+    summary.append("be reviewed by qualified healthcare professionals and")
+    summary.append("insurance authorization specialists.")
+    
+    return "\n".join(summary)
+
+# Optional: Add a function to view saved cases
+def render_saved_cases():
+    """Display saved case history"""
+    if 'saved_cases' in st.session_state and st.session_state.saved_cases:
+        st.markdown("#### 📚 Saved Cases")
+        
+        for i, case in enumerate(reversed(st.session_state.saved_cases), 1):
+            with st.expander(f"Case {len(st.session_state.saved_cases) - i + 1} - {case['timestamp']}"):
+                st.write("**Diagnoses:**")
+                diagnoses = case['result'].get('differential_diagnosis', [])
+                for j, diag in enumerate(diagnoses[:3], 1):  # Show top 3
+                    if diag and diag.get('diagnosis'):
+                        st.write(f"{j}. {diag.get('diagnosis')} - Likelihood: {diag.get('confidence', 0)}%")
+                
+                if st.button(f"🗑️ Delete Case {len(st.session_state.saved_cases) - i + 1}", key=f"delete_{i}"):
+                    st.session_state.saved_cases.remove(case)
+                    st.rerun()
+    else:
+        st.info("No saved cases yet. Save some diagnosis results to see them here!")
+
+
 
 def render_diagnosis_display(result):
     """Render improved diagnosis display"""
     diagnoses = result.get('differential_diagnosis', [])
+    
     if diagnoses:
-        st.markdown("---")
-        st.markdown("#### 🩺 Differential Diagnoses")
+        # Filter out empty diagnoses first
+        valid_diagnoses = [diag for diag in diagnoses if diag and diag.get('diagnosis') and str(diag.get('diagnosis')).strip()]
         
-        st.markdown('<div class="diagnosis-container">', unsafe_allow_html=True)
-        
-        for i, diag in enumerate(diagnoses, 1):
-            name = diag.get('diagnosis', 'Unknown condition')
-            icd10 = diag.get('icd10', 'No code')
-            confidence = diag.get('confidence', 0)
+        if valid_diagnoses:
+            st.markdown("---")
+            st.markdown("#### 🩺 Differential Diagnoses")
             
-            st.markdown(f"""
-            <div class="diagnosis-item">
-                <div class="diagnosis-info">
-                    <div class="diagnosis-name">{i}. {name}</div>
-                    <div class="diagnosis-code">ICD-10: {icd10}</div>
-                </div>
-                <div class="confidence-badge">{confidence}%</div>
-            </div>
+            # Add the CSS inline to ensure it's applied
+            st.markdown("""
+            <style>
+            .diagnosis-container {
+                background-color: white !important;
+                padding: 0px !important;
+                margin: 0px !important;
+                border-radius: 10px;
+            }
+            
+            .diagnosis-item {
+                display: flex !important;
+                justify-content: space-between !important;
+                align-items: center !important;
+                background-color: #f8f9fa !important;
+                border: 1px solid #e9ecef !important;
+                border-radius: 8px !important;
+                padding: 15px !important;
+                margin: 8px 0 !important;
+                min-height: 60px !important;
+            }
+            
+            .diagnosis-info {
+                flex-grow: 1 !important;
+            }
+            
+            .diagnosis-name {
+                font-size: 16px !important;
+                font-weight: bold !important;
+                color: #333 !important;
+                margin: 0 0 5px 0 !important;
+                line-height: 1.2 !important;
+            }
+            
+            .diagnosis-code {
+                font-size: 14px !important;
+                color: #666 !important;
+                margin: 0 !important;
+                line-height: 1.2 !important;
+            }
+            
+            .confidence-badge {
+                background-color: #007bff !important;
+                color: white !important;
+                padding: 8px 12px !important;
+                border-radius: 20px !important;
+                font-weight: bold !important;
+                font-size: 14px !important;
+                min-width: 80px !important;
+                text-align: center !important;
+            }
+            </style>
             """, unsafe_allow_html=True)
-        
-        st.markdown('</div>', unsafe_allow_html=True)
+            
+            st.markdown('<div class="diagnosis-container">', unsafe_allow_html=True)
+            
+            for i, diag in enumerate(valid_diagnoses, 1):
+                name = diag.get('diagnosis', 'Unknown condition')
+                icd10 = diag.get('icd10', 'No code')
+                confidence = diag.get('confidence', 0)
+                
+                st.markdown(f"""
+                <div class="diagnosis-item">
+                    <div class="diagnosis-info">
+                        <div class="diagnosis-name">{i}. {name}</div>
+                        <div class="diagnosis-code">ICD-10: {icd10}</div>
+                    </div>
+                    <div class="confidence-badge">Likelihood: {confidence}%</div>
+                </div>
+                """, unsafe_allow_html=True)
+            
+            st.markdown('</div>', unsafe_allow_html=True)
 
 def render_footer_metrics():
     """Render footer metrics"""
