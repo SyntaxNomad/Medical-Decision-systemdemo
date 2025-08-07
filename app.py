@@ -30,6 +30,7 @@ def configure_app():
         layout="wide",
         initial_sidebar_state="expanded"
     )
+    
 
 def initialize_ai():
     """Initialize AI system with proper error handling"""
