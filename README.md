@@ -1,4 +1,4 @@
-# 🏥 Medical Support Authorization AI
+#  Medical Support Authorization AI
 
 AI-powered medical procedure authorization system that provides instant, evidence-based approval decisions.
 
@@ -8,16 +8,16 @@ AI-powered medical procedure authorization system that provides instant, evidenc
 - High operational costs (200+ SAR per review)
 
 ## Solution
-- ⚡ **Instant decisions** (< 60 seconds)
-- 📊 **Evidence-based reasoning** with clinical guidelines
-- 💰 **95% cost reduction** vs manual review
-- 🏥 **Multi-procedure support**
+-  **Instant decisions** (< 60 seconds)
+-  **Evidence-based reasoning** with clinical guidelines
+-  **95% cost reduction** vs manual review
+-  **Multi-procedure support**
 
 ## Tech Stack
 - **AI**: Google Gemini 2.5 Flash
 - **Backend**: Python
 - **Frontend**: Streamlit
-- **Testing**: 100% success rate
+- **Testing**: high success rate
 
 ## Quick Start
 ```bash
@@ -46,9 +46,9 @@ print(f"Confidence: {result['confidence']}%")  # 95%
 ## Performance
 | Metric | Result |
 |--------|--------|
-| Test Success | 100% |
+| Test Success | High |
 | Response Time | ~15 seconds |
-| Decision Accuracy | 100% |
+| Decision Accuracy | High |
 
 ## Use Cases
 - Insurance prior authorization
