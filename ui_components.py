@@ -789,11 +789,11 @@ def render_export_options(result):
     col1, col2, col3 = st.columns(3)
     
     with col1:
-        if st.button(" Export Text", use_container_width=True):
+        if st.button("📖 Export Text", use_container_width=True):
             # Create a comprehensive text summary that can be downloaded
             pdf_content = generate_text_summary(result)
             st.download_button(
-                label=" Download Complete Receipt",
+                label="📥 Download Complete Receipt",
                 data=pdf_content,
                 file_name=f"medical_authorization_receipt_{datetime.now().strftime('%Y%m%d_%H%M')}.txt",
                 mime="text/plain",
