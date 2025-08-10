@@ -962,34 +962,34 @@ def generate_text_summary(result):
         summary.append("DETAILED AUTHORIZATION DECISION:")
         summary.append("-" * 32)
         summary.append(f"{status_icon} FINAL DECISION: {decision}")
-        summary.append(f"🏥 Procedure: {procedure_name}")
-        summary.append(f"🎯 AI Confidence Level: {confidence}%")
-        summary.append(f"📋 Clinical Indication: {clinical_indication}")
-        summary.append(f"⚡ Medical Urgency: {urgency}")
-        summary.append(f"💰 Cost Classification: {cost_estimate}")
+        summary.append(f" Procedure: {procedure_name}")
+        summary.append(f" AI Confidence Level: {confidence}%")
+        summary.append(f" Clinical Indication: {clinical_indication}")
+        summary.append(f" Medical Urgency: {urgency}")
+        summary.append(f" Cost Classification: {cost_estimate}")
         summary.append("")
-        summary.append("🤖 AI MEDICAL REASONING:")
+        summary.append(" AI MEDICAL REASONING:")
         summary.append(reasoning)
         summary.append("")
         
         # Add additional details
         missing_info = result.get('missing_info', [])
         if missing_info:
-            summary.append("ℹ️  ADDITIONAL INFORMATION NEEDED:")
+            summary.append("ℹ  ADDITIONAL INFORMATION NEEDED:")
             for info in missing_info:
                 summary.append(f"   • {info}")
             summary.append("")
         
         alternatives = result.get('alternatives', [])
         if alternatives:
-            summary.append("🔄 ALTERNATIVE TREATMENTS CONSIDERED:")
+            summary.append(" ALTERNATIVE TREATMENTS CONSIDERED:")
             for alt in alternatives:
                 summary.append(f"   • {alt}")
             summary.append("")
         
         guidelines = result.get('guidelines_referenced', [])
         if guidelines:
-            summary.append("📚 MEDICAL GUIDELINES REFERENCED:")
+            summary.append(" MEDICAL GUIDELINES REFERENCED:")
             for guideline in guidelines:
                 summary.append(f"   • {guideline}")
             summary.append("")
@@ -1007,13 +1007,13 @@ def generate_text_summary(result):
         summary.append("-" * 42)
         for i, justification in enumerate(st.session_state.justification_history, 1):
             summary.append(f"Appeal #{i}: {justification['procedure_name']}")
-            summary.append(f"   📅 Submitted: {justification['timestamp']}")
-            summary.append(f"   📊 Original Decision: {justification['original_decision']}")
-            summary.append(f"   🔄 Updated Decision: {justification['new_decision']}")
-            summary.append(f"   ✅ Decision Changed: {'Yes' if justification['decision_changed'] else 'No'}")
-            summary.append(f"   📝 Provider Justification:")
+            summary.append(f"    Submitted: {justification['timestamp']}")
+            summary.append(f"    Original Decision: {justification['original_decision']}")
+            summary.append(f"    Updated Decision: {justification['new_decision']}")
+            summary.append(f"    Decision Changed: {'Yes' if justification['decision_changed'] else 'No'}")
+            summary.append(f"    Provider Justification:")
             summary.append(f"      {justification['justification_text']}")
-            summary.append(f"   🤖 AI Re-Assessment:")
+            summary.append(f"    AI Re-Assessment:")
             summary.append(f"      {justification['ai_assessment']}")
             summary.append("")
     
@@ -1027,9 +1027,9 @@ def generate_text_summary(result):
                 name = diag.get('diagnosis', 'Unknown condition')
                 icd10 = diag.get('icd10', 'No code available')
                 confidence = diag.get('confidence', 0)
-                summary.append(f"{i}. 🏥 Condition: {name}")
-                summary.append(f"   📋 ICD-10 Code: {icd10}")
-                summary.append(f"   🎯 AI Likelihood Assessment: {confidence}%")
+                summary.append(f"{i}.  Condition: {name}")
+                summary.append(f"    ICD-10 Code: {icd10}")
+                summary.append(f"    AI Likelihood Assessment: {confidence}%")
                 summary.append("")
     
     # Add all other AI-generated sections
@@ -1048,9 +1048,9 @@ def generate_text_summary(result):
     # Add technical AI analysis details
     summary.append("AI SYSTEM ANALYSIS METADATA:")
     summary.append("-" * 30)
-    summary.append(f"🤖 AI Model: Gemini-1.5-Flash")
-    summary.append(f"📊 Analysis Timestamp: {result.get('analyzed_at', 'Not recorded')}")
-    summary.append(f"🎯 Response Format: {'Multiple Procedures' if result.get('multiple_procedures') else 'Single Procedure'}")
+    summary.append(f" AI Model: Gemini-1.5-Flash")
+    summary.append(f" Analysis Timestamp: {result.get('analyzed_at', 'Not recorded')}")
+    summary.append(f" Response Format: {'Multiple Procedures' if result.get('multiple_procedures') else 'Single Procedure'}")
     summary.append("")
     
     # Add comprehensive disclaimer
@@ -1058,12 +1058,12 @@ def generate_text_summary(result):
     summary.append("-" * 40)
     summary.append("⚠️  This AI-generated authorization analysis is for informational")
     summary.append("    and workflow assistance purposes only.")
-    summary.append("✅ All final authorization decisions must be reviewed and")
+    summary.append(" All final authorization decisions must be reviewed and")
     summary.append("    approved by qualified healthcare professionals.")
-    summary.append("🏥 This analysis does not constitute medical advice.")
-    summary.append("📋 Insurance authorization specialists should validate")
+    summary.append(" This analysis does not constitute medical advice.")
+    summary.append(" Insurance authorization specialists should validate")
     summary.append("    all decisions according to policy guidelines.")
-    summary.append("🔒 This document contains protected health information (PHI).")
+    summary.append(" This document contains protected health information (PHI).")
     
     return "\n".join(summary)
 
@@ -1071,7 +1071,7 @@ def generate_text_summary(result):
 def render_saved_cases():
     """Display saved case history"""
     if 'saved_cases' in st.session_state and st.session_state.saved_cases:
-        st.markdown("#### 📚 Saved Cases")
+        st.markdown("####  Saved Cases")
         
         for i, case in enumerate(reversed(st.session_state.saved_cases), 1):
             with st.expander(f"Case {len(st.session_state.saved_cases) - i + 1} - {case['timestamp']}"):
@@ -1081,7 +1081,7 @@ def render_saved_cases():
                     if diag and diag.get('diagnosis'):
                         st.write(f"{j}. {diag.get('diagnosis')} - Likelihood: {diag.get('confidence', 0)}%")
                 
-                if st.button(f"🗑️ Delete Case {len(st.session_state.saved_cases) - i + 1}", key=f"delete_{i}"):
+                if st.button(f" Delete Case {len(st.session_state.saved_cases) - i + 1}", key=f"delete_{i}"):
                     st.session_state.saved_cases.remove(case)
                     st.rerun()
     else:
