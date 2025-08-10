@@ -5,8 +5,8 @@ GEMINI_MODEL = 'gemini-1.5-flash'
 MAX_RETRIES = 3
 API_TIMEOUT = 30
 
-# Input Validation - Made more flexible based on feedback
-MIN_INPUT_LENGTH = 15  # Reduced from 20
+# Input Validation 
+MIN_INPUT_LENGTH = 15  
 MAX_INPUT_LENGTH = 5000
 
 # Age patterns - Accept approximate ages
@@ -81,5 +81,5 @@ COLORS = {
     'secondary': '#374151'
 }
 
-# Required keywords for basic validation (more flexible)
-REQUIRED_KEYWORDS = ['age', 'procedure']  # Only need these two basics
+# Required keywords for basic validation
+REQUIRED_KEYWORDS = ['age', 'procedure']  # Only need these two 

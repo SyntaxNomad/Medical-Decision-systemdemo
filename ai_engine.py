@@ -36,7 +36,7 @@ class MedicalAuthorizationAI:
                     "response_mime_type": "application/json",
                     "temperature": 0,  # Zero temperature for consistent medical decisions
                     "max_output_tokens": 4000
-                }
+                },
             )
             
             self.is_initialized = True
@@ -60,8 +60,7 @@ class MedicalAuthorizationAI:
     
     def analyze_case(self, patient_data):
         """
-        Main analysis function - improved with better error handling
-        Returns structured medical decision
+        Main analysis function 
         """
         if not self.is_initialized:
             return self._error_response(f"AI system not initialized: {self.error_message}")
@@ -105,7 +104,7 @@ class MedicalAuthorizationAI:
         if not self.is_initialized:
             return self._error_response("AI system not initialized")
         
-        # Simple prompt - no related procedure logic
+        # Simple prompt 
         prompt = f"""
         Review this medical authorization that was {decision_info.get('decision', 'DENIED')}.
 
