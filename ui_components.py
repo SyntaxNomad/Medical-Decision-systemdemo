@@ -471,11 +471,11 @@ def render_results_section():
             st.caption(f" Analysis completed: {st.session_state.analysis_time}")
         
         # Technical details (collapsible)
-        with st.expander("🔧  Structured Summary"):
+        with st.expander(" Structured Summary"):
             st.json(result)
     
     else:
-        st.info("⏳ Enter a patient case and click 'Analyze Case' to see results here.")
+        st.info(" Enter a patient case and click 'Analyze Case' to see results here.")
         
         # Show sample output
         st.markdown("#### Sample Output Preview")
@@ -567,7 +567,7 @@ def show_procedure_list(procedures):
             title = " Denied Procedures"
         else:  # pending
             filtered = [p for p in procedures if p.get('decision') == 'PENDING_ADDITIONAL_INFO']
-            title = "⏳ Pending Procedures"
+            title = " Pending Procedures"
         
         if filtered:
             st.markdown(f"<div class='procedure-list'><h4>{title}</h4>", unsafe_allow_html=True)
@@ -592,7 +592,7 @@ def create_decision_card(procedure_data, index=None, original_case=""):
     elif decision == "DENIED":
         card_class, status_text, status_color = "denied", " DENIED", COLORS['denied']
     else:
-        card_class, status_text, status_color = "pending", "⏳ PENDING", COLORS['pending']
+        card_class, status_text, status_color = "pending", " PENDING", COLORS['pending']
     
     # Display the card
     st.markdown(f"""
@@ -642,7 +642,7 @@ def render_justification_section(procedure_data, procedure_name, original_case, 
             
             col1, col2 = st.columns([1, 2])
             with col1:
-                submit_justify = st.form_submit_button("🔄 Re-analyze", type="primary")
+                submit_justify = st.form_submit_button(" Re-analyze", type="primary")
             with col2:
                 if st.form_submit_button("❌ Cancel"):
                     st.session_state[f"show_justify_{justify_key}"] = False
@@ -724,11 +724,11 @@ JUSTIFICATION {timestamp}: {procedure_name} → {status_emoji} {new_decision}
             if new_decision == "DENIED":
                 st.error("❌ **Still DENIED** - Additional justification not sufficient")
             else:
-                st.warning("⏳ **Still PENDING** - More information needed")
-            st.info("📝 **Justification has been added to your original case input above.**")
+                st.warning(" **Still PENDING** - More information needed")
+            st.info(" **Justification has been added to your original case input above.**")
         else:
-            st.info("🔄 **Decision Unchanged** - Original decision stands")
-            st.info("📝 **Justification has been added to your original case input above.**")
+            st.info(" **Decision Unchanged** - Original decision stands")
+            st.info(" **Justification has been added to your original case input above.**")
         
         # Show AI assessment
         assessment = justify_result.get('justification_assessment', '')
@@ -789,11 +789,11 @@ def render_export_options(result):
     col1, col2, col3 = st.columns(3)
     
     with col1:
-        if st.button("📄 Export Text", use_container_width=True):
+        if st.button(" Export Text", use_container_width=True):
             # Create a comprehensive text summary that can be downloaded
             pdf_content = generate_text_summary(result)
             st.download_button(
-                label="📥 Download Complete Receipt",
+                label=" Download Complete Receipt",
                 data=pdf_content,
                 file_name=f"medical_authorization_receipt_{datetime.now().strftime('%Y%m%d_%H%M')}.txt",
                 mime="text/plain",
@@ -929,10 +929,10 @@ def generate_text_summary(result):
         # Add summary stats
         summary.append("AUTHORIZATION SUMMARY STATISTICS:")
         summary.append("-" * 32)
-        summary.append(f"📊 Total Procedures Reviewed: {len(procedures)}")
-        summary.append(f"✅ Approved Procedures: {approved_count}")
-        summary.append(f"❌ Denied Procedures: {denied_count}")
-        summary.append(f"⏳ Pending Additional Info: {pending_count}")
+        summary.append(f" Total Procedures Reviewed: {len(procedures)}")
+        summary.append(f" Approved Procedures: {approved_count}")
+        summary.append(f" Denied Procedures: {denied_count}")
+        summary.append(f" Pending Additional Info: {pending_count}")
         summary.append("")
         
         # Overall AI assessment
@@ -962,34 +962,34 @@ def generate_text_summary(result):
         summary.append("DETAILED AUTHORIZATION DECISION:")
         summary.append("-" * 32)
         summary.append(f"{status_icon} FINAL DECISION: {decision}")
-        summary.append(f"🏥 Procedure: {procedure_name}")
-        summary.append(f"🎯 AI Confidence Level: {confidence}%")
-        summary.append(f"📋 Clinical Indication: {clinical_indication}")
-        summary.append(f"⚡ Medical Urgency: {urgency}")
-        summary.append(f"💰 Cost Classification: {cost_estimate}")
+        summary.append(f" Procedure: {procedure_name}")
+        summary.append(f" AI Confidence Level: {confidence}%")
+        summary.append(f" Clinical Indication: {clinical_indication}")
+        summary.append(f" Medical Urgency: {urgency}")
+        summary.append(f" Cost Classification: {cost_estimate}")
         summary.append("")
-        summary.append("🤖 AI MEDICAL REASONING:")
+        summary.append(" AI MEDICAL REASONING:")
         summary.append(reasoning)
         summary.append("")
         
         # Add additional details
         missing_info = result.get('missing_info', [])
         if missing_info:
-            summary.append("ℹ️  ADDITIONAL INFORMATION NEEDED:")
+            summary.append("ℹ  ADDITIONAL INFORMATION NEEDED:")
             for info in missing_info:
                 summary.append(f"   • {info}")
             summary.append("")
         
         alternatives = result.get('alternatives', [])
         if alternatives:
-            summary.append("🔄 ALTERNATIVE TREATMENTS CONSIDERED:")
+            summary.append(" ALTERNATIVE TREATMENTS CONSIDERED:")
             for alt in alternatives:
                 summary.append(f"   • {alt}")
             summary.append("")
         
         guidelines = result.get('guidelines_referenced', [])
         if guidelines:
-            summary.append("📚 MEDICAL GUIDELINES REFERENCED:")
+            summary.append(" MEDICAL GUIDELINES REFERENCED:")
             for guideline in guidelines:
                 summary.append(f"   • {guideline}")
             summary.append("")
@@ -1007,13 +1007,13 @@ def generate_text_summary(result):
         summary.append("-" * 42)
         for i, justification in enumerate(st.session_state.justification_history, 1):
             summary.append(f"Appeal #{i}: {justification['procedure_name']}")
-            summary.append(f"   📅 Submitted: {justification['timestamp']}")
-            summary.append(f"   📊 Original Decision: {justification['original_decision']}")
-            summary.append(f"   🔄 Updated Decision: {justification['new_decision']}")
-            summary.append(f"   ✅ Decision Changed: {'Yes' if justification['decision_changed'] else 'No'}")
-            summary.append(f"   📝 Provider Justification:")
+            summary.append(f"    Submitted: {justification['timestamp']}")
+            summary.append(f"    Original Decision: {justification['original_decision']}")
+            summary.append(f"    Updated Decision: {justification['new_decision']}")
+            summary.append(f"    Decision Changed: {'Yes' if justification['decision_changed'] else 'No'}")
+            summary.append(f"    Provider Justification:")
             summary.append(f"      {justification['justification_text']}")
-            summary.append(f"   🤖 AI Re-Assessment:")
+            summary.append(f"    AI Re-Assessment:")
             summary.append(f"      {justification['ai_assessment']}")
             summary.append("")
     
@@ -1027,9 +1027,9 @@ def generate_text_summary(result):
                 name = diag.get('diagnosis', 'Unknown condition')
                 icd10 = diag.get('icd10', 'No code available')
                 confidence = diag.get('confidence', 0)
-                summary.append(f"{i}. 🏥 Condition: {name}")
-                summary.append(f"   📋 ICD-10 Code: {icd10}")
-                summary.append(f"   🎯 AI Likelihood Assessment: {confidence}%")
+                summary.append(f"{i}.  Condition: {name}")
+                summary.append(f"    ICD-10 Code: {icd10}")
+                summary.append(f"    AI Likelihood Assessment: {confidence}%")
                 summary.append("")
     
     # Add all other AI-generated sections
@@ -1048,22 +1048,22 @@ def generate_text_summary(result):
     # Add technical AI analysis details
     summary.append("AI SYSTEM ANALYSIS METADATA:")
     summary.append("-" * 30)
-    summary.append(f"🤖 AI Model: Gemini-1.5-Flash")
-    summary.append(f"📊 Analysis Timestamp: {result.get('analyzed_at', 'Not recorded')}")
-    summary.append(f"🎯 Response Format: {'Multiple Procedures' if result.get('multiple_procedures') else 'Single Procedure'}")
+    summary.append(f" AI Model: Gemini-1.5-Flash")
+    summary.append(f" Analysis Timestamp: {result.get('analyzed_at', 'Not recorded')}")
+    summary.append(f" Response Format: {'Multiple Procedures' if result.get('multiple_procedures') else 'Single Procedure'}")
     summary.append("")
     
     # Add comprehensive disclaimer
     summary.append("IMPORTANT MEDICAL & LEGAL DISCLAIMERS:")
     summary.append("-" * 40)
-    summary.append("⚠️  This AI-generated authorization analysis is for informational")
+    summary.append("  This AI-generated authorization analysis is for informational")
     summary.append("    and workflow assistance purposes only.")
-    summary.append("✅ All final authorization decisions must be reviewed and")
+    summary.append(" All final authorization decisions must be reviewed and")
     summary.append("    approved by qualified healthcare professionals.")
-    summary.append("🏥 This analysis does not constitute medical advice.")
-    summary.append("📋 Insurance authorization specialists should validate")
+    summary.append(" This analysis does not constitute medical advice.")
+    summary.append(" Insurance authorization specialists should validate")
     summary.append("    all decisions according to policy guidelines.")
-    summary.append("🔒 This document contains protected health information (PHI).")
+    summary.append(" This document contains protected health information (PHI).")
     
     return "\n".join(summary)
 
@@ -1071,7 +1071,7 @@ def generate_text_summary(result):
 def render_saved_cases():
     """Display saved case history"""
     if 'saved_cases' in st.session_state and st.session_state.saved_cases:
-        st.markdown("#### 📚 Saved Cases")
+        st.markdown("####  Saved Cases")
         
         for i, case in enumerate(reversed(st.session_state.saved_cases), 1):
             with st.expander(f"Case {len(st.session_state.saved_cases) - i + 1} - {case['timestamp']}"):
@@ -1081,7 +1081,7 @@ def render_saved_cases():
                     if diag and diag.get('diagnosis'):
                         st.write(f"{j}. {diag.get('diagnosis')} - Likelihood: {diag.get('confidence', 0)}%")
                 
-                if st.button(f"🗑️ Delete Case {len(st.session_state.saved_cases) - i + 1}", key=f"delete_{i}"):
+                if st.button(f" Delete Case {len(st.session_state.saved_cases) - i + 1}", key=f"delete_{i}"):
                     st.session_state.saved_cases.remove(case)
                     st.rerun()
     else:
